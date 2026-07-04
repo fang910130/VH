@@ -8,10 +8,10 @@ echo "开始安装 VoHive..."
 ARCH=$(uname -m)
 echo "检测到当前系统架构为: $ARCH"
 
-# 定义不同架构的下载链接（请将下面三个引号里的链接替换为你自己的 GitHub Raw 直链）
-URL_AMD64="https://github.com/fang910130/VH/blob/main/vohive_v1.5.5_linux_amd64"
-URL_ARM64="https://github.com/fang910130/VH/blob/main/vohive_v1.5.5_linux_arm64"
-URL_CONFIG="https://raw.githubusercontent.com/fang910130/VH/refs/heads/main/config.yaml"
+# 【已修正】将 /blob/ 替换为 raw 直链，确保下载的是二进制文件而不是网页
+URL_AMD64="https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
+URL_ARM64="https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
+URL_CONFIG="https://raw.githubusercontent.com/fang910130/VH/main/config.yaml"
 
 # 根据架构选择主程序链接
 if [ "$ARCH" = "x86_64" ]; then
@@ -40,15 +40,16 @@ mkdir -p /opt/vohive/config
 # =======================================================
 # 4. 下载文件
 # =======================================================
-echo "正在下载文件..."
-# 使用 -q 参数让 wget 静默下载，-O 指定输出路径
-wget -q -O /opt/vohive/bin/vohive "$DOWNLOAD_URL"
+echo "正在下载主程序..."
+# 使用 -q --show-progress 参数显示纯净的进度条
+wget -q --show-progress -O /opt/vohive/bin/vohive "$DOWNLOAD_URL"
 if [ $? -ne 0 ]; then
     echo "❌ 错误: 主程序下载失败，请检查链接。"
     exit 1
 fi
 
-wget -q -O /opt/vohive/config/config.yaml "$URL_CONFIG"
+echo "正在下载配置文件..."
+wget -q --show-progress -O /opt/vohive/config/config.yaml "$URL_CONFIG"
 if [ $? -ne 0 ]; then
     echo "❌ 错误: 配置文件下载失败，请检查链接。"
     exit 1
