@@ -8,10 +8,10 @@ echo "开始安装 VoHive..."
 ARCH=$(uname -m)
 echo "检测到当前系统架构为: $ARCH"
 
-# 【已全部替换为国内可直接下载的加速代理链接】
-URL_AMD64="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
-URL_ARM64="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
-URL_CONFIG="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/config.yaml"
+# 【终极方案：使用你的专属 CF 域名加速】
+URL_AMD64="https://gitgo.cfang.qzz.io/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
+URL_ARM64="https://gitgo.cfang.qzz.io/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
+URL_CONFIG="https://gitgo.cfang.qzz.io/fang910130/VH/main/config.yaml"
 
 # 根据架构选择主程序链接
 if [ "$ARCH" = "x86_64" ]; then
@@ -32,10 +32,11 @@ systemctl stop vohive 2>/dev/null
 systemctl disable vohive 2>/dev/null
 
 # =======================================================
-# 3. 创建规范的安装目录
+# 3. 创建规范的安装目录 (已修复：补充 data 数据文件夹)
 # =======================================================
 mkdir -p /opt/vohive/bin
 mkdir -p /opt/vohive/config
+mkdir -p /opt/vohive/data
 
 # =======================================================
 # 4. 下载文件（带进度条）
@@ -60,7 +61,7 @@ fi
 chmod +x /opt/vohive/bin/vohive
 
 # =======================================================
-# 6. 生成系统服务 (开机自启和后台运行)
+# 6. 生成系统服务 (已修复：补充 WorkingDirectory 工作目录)
 # =======================================================
 echo "配置系统服务..."
 cat <<EOF > /etc/systemd/system/vohive.service
@@ -70,6 +71,7 @@ After=network.target
 
 [Service]
 Type=simple
+WorkingDirectory=/opt/vohive
 ExecStart=/opt/vohive/bin/vohive -c /opt/vohive/config/config.yaml
 Restart=on-failure
 RestartSec=5
