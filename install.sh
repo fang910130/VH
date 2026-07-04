@@ -42,17 +42,17 @@ mkdir -p /opt/vohive/config
 mkdir -p /opt/vohive/data
 
 # =======================================================
-# 4. 下载文件（带进度条）
+# 4. 下载文件（已强制 -4 走 IPv4 防卡死，带进度条）
 # =======================================================
 echo "正在下载主程序..."
-wget -q --show-progress -O /opt/vohive/bin/vohive "$DOWNLOAD_URL"
+wget -4 -q --show-progress -O /opt/vohive/bin/vohive "$DOWNLOAD_URL"
 if [ $? -ne 0 ]; then
     echo "❌ 错误: 主程序下载失败，请检查链接。"
     exit 1
 fi
 
 echo "正在下载配置文件..."
-wget -q --show-progress -O /opt/vohive/config/config.yaml "$URL_CONFIG"
+wget -4 -q --show-progress -O /opt/vohive/config/config.yaml "$URL_CONFIG"
 if [ $? -ne 0 ]; then
     echo "❌ 错误: 配置文件下载失败，请检查链接。"
     exit 1
