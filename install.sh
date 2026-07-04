@@ -8,12 +8,10 @@ echo "开始安装 VoHive..."
 ARCH=$(uname -m)
 echo "检测到当前系统架构为: $ARCH"
 
-# 【终极方案：使用你的专属 CF 域名加速】
 URL_AMD64="https://gitgo.cfang.qzz.io/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
 URL_ARM64="https://gitgo.cfang.qzz.io/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
 URL_CONFIG="https://gitgo.cfang.qzz.io/fang910130/VH/main/config.yaml"
 
-# 根据架构选择主程序链接
 if [ "$ARCH" = "x86_64" ]; then
     DOWNLOAD_URL=$URL_AMD64
     echo "将下载 AMD64 版本主程序..."
@@ -26,13 +24,18 @@ else
 fi
 
 # =======================================================
-# 2. 停止并清理旧服务
+# 2. 停止并清理旧服务 (自动识别系统类型)
 # =======================================================
-systemctl stop vohive 2>/dev/null
-systemctl disable vohive 2>/dev/null
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl stop vohive 2>/dev/null
+    systemctl disable vohive 2>/dev/null
+elif [ -f /etc/init.d/vohive ]; then
+    /etc/init.d/vohive stop 2>/dev/null
+    /etc/init.d/vohive disable 2>/dev/null
+fi
 
 # =======================================================
-# 3. 创建规范的安装目录 (已修复：补充 data 数据文件夹)
+# 3. 创建规范的安装目录
 # =======================================================
 mkdir -p /opt/vohive/bin
 mkdir -p /opt/vohive/config
@@ -55,16 +58,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# =======================================================
-# 5. 赋予执行权限
-# =======================================================
 chmod +x /opt/vohive/bin/vohive
 
 # =======================================================
-# 6. 生成系统服务 (已修复：补充 WorkingDirectory 工作目录)
+# 5. 生成后台服务与开机自启 (核心修复：自动适配 iStoreOS)
 # =======================================================
-echo "配置系统服务..."
-cat <<EOF > /etc/systemd/system/vohive.service
+if command -v systemctl >/dev/null 2>&1; then
+    # 【Debian/Ubuntu 虚拟机分支】
+    echo "检测到标准 Linux 系统，正在配置 systemd 服务..."
+    cat <<EOF > /etc/systemd/system/vohive.service
 [Unit]
 Description=VoHive Service
 After=network.target
@@ -80,13 +82,31 @@ User=root
 [Install]
 WantedBy=multi-user.target
 EOF
+    systemctl daemon-reload
+    systemctl enable vohive
+    systemctl restart vohive
 
-# =======================================================
-# 7. 重载并启动服务
-# =======================================================
-systemctl daemon-reload
-systemctl enable vohive
-systemctl restart vohive
+else
+    # 【iStoreOS / OpenWrt 路由系统分支】
+    echo "检测到 iStoreOS/OpenWrt 系统，正在配置 procd 守护服务..."
+    cat <<EOF > /etc/init.d/vohive
+#!/bin/sh /etc/rc.common
+START=95
+USE_PROCD=1
 
-echo "✅ VoHive 部署完成！服务已在后台运行。"
-echo "可以使用命令 'systemctl status vohive' 查看运行状态。"
+start_service() {
+    cd /opt/vohive
+    procd_open_instance
+    procd_set_param command /opt/vohive/bin/vohive -c /opt/vohive/config/config.yaml
+    procd_set_param respawn 3600 5 5
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+}
+EOF
+    chmod +x /etc/init.d/vohive
+    /etc/init.d/vohive enable
+    /etc/init.d/vohive restart
+fi
+
+echo "✅ VoHive 部署完成！服务已在后台常驻运行。"
