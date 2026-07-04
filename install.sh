@@ -8,10 +8,10 @@ echo "开始安装 VoHive..."
 ARCH=$(uname -m)
 echo "检测到当前系统架构为: $ARCH"
 
-# 【已修正】将 /blob/ 替换为 raw 直链，确保下载的是二进制文件而不是网页
-URL_AMD64="https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
-URL_ARM64="https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
-URL_CONFIG="https://raw.githubusercontent.com/fang910130/VH/main/config.yaml"
+# 【已全部替换为国内可直接下载的加速代理链接】
+URL_AMD64="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_amd64"
+URL_ARM64="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/vohive_v1.5.5_linux_arm64"
+URL_CONFIG="https://ghproxy.net/https://raw.githubusercontent.com/fang910130/VH/main/config.yaml"
 
 # 根据架构选择主程序链接
 if [ "$ARCH" = "x86_64" ]; then
@@ -38,10 +38,9 @@ mkdir -p /opt/vohive/bin
 mkdir -p /opt/vohive/config
 
 # =======================================================
-# 4. 下载文件
+# 4. 下载文件（带进度条）
 # =======================================================
 echo "正在下载主程序..."
-# 使用 -q --show-progress 参数显示纯净的进度条
 wget -q --show-progress -O /opt/vohive/bin/vohive "$DOWNLOAD_URL"
 if [ $? -ne 0 ]; then
     echo "❌ 错误: 主程序下载失败，请检查链接。"
